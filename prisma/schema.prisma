@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int     @id @default(autoincrement())
+  name             String
+  email            String  @unique
+  contact_no       String
+  isd_code         String
+  whats_app_number String?
+  location         String
+  password         String
+  date_of_birth    String?
+  profile_image    String?
+
+  created_at            DateTime                @default(now())
+  updated_at            DateTime?               @updatedAt
+  deleted_at            DateTime?
+  Goal                  Goal[]
+  Goal_Additional_Point Goal_Additional_Point[]
+
+  @@map("users")
+}
+
+model Goal {
+  id                      Int     @id @default(autoincrement())
+  description             String?
+  lead_target             Int
+  lead_actual             Int?
+  lag_target              Int?
+  lag_actual              Int?
+  duration                String
+  duration_weeks          Int?
+  start_date              String?
+  end_date                String?
+  lead_execution_score    String?
+  lag_execution_score     String?
+  overall_execution_score String?
+
+  user    User @relation(fields: [user_id], references: [id])
+  user_id Int
+
+  created_at            DateTime                @default(now())
+  updated_at            DateTime?               @updatedAt
+  deleted_at            DateTime?
+  Week_Goal             Week_Goal[]
+  Goal_Additional_Point Goal_Additional_Point[]
+
+  @@map("goals")
+}
+
+model Week_Goal {
+  id       Int @id @default(autoincrement())
+  week_for Int
+
+  goal_id Int
+  goal    Goal @relation(fields: [goal_id], references: [id])
+
+  description             String?
+  lead_target             Int
+  lead_actual             Int?
+  lag_target              Int?
+  lag_actual              Int?
+  start_date              String?
+  end_date                String?
+  lead_execution_score    String?
+  lag_execution_score     String?
+  overall_execution_score String?
+
+  created_at        DateTime            @default(now())
+  updated_at        DateTime?           @updatedAt
+  deleted_at        DateTime?
+  Week_Goal_Actions Week_Goal_Actions[]
+
+  @@map("week_goals")
+}
+
+model Week_Goal_Actions {
+  id         Int     @id @default(autoincrement())
+  key_action String
+  who        String?
+  day        String?
+
+  week_goal_id Int
+  week_goal    Week_Goal @relation(fields: [week_goal_id], references: [id])
+
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+  deleted_at DateTime?
+
+  @@map("week_goal_actions")
+}
+
+model Goal_Additional_Point {
+  id               Int     @id @default(autoincrement())
+  description      String?
+  additional_point String?
+  point_label      String?
+  point_value      String?
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+
+  goal_id Int
+  goal    Goal @relation(fields: [goal_id], references: [id])
+
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+  deleted_at DateTime?
+
+  @@map("goal_additional_points")
+}
