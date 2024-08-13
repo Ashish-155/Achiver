@@ -456,7 +456,6 @@ const updateWeekGoalAction = async (req, h) => {
                 deleted_at: null,
             },
             data: {
-                week_goal_id: existingGoal.id,
                 key_action,
                 who,
                 day,
@@ -464,7 +463,7 @@ const updateWeekGoalAction = async (req, h) => {
         });
 
         return h.response({
-            message: "Week goal's action set successfully.",
+            message: "Week goal's action updated successfully.",
             data: actionData,
         }).code(200);
     } catch (error) {

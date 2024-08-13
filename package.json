@@ -7,8 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
     "db:migrate": "prisma migrate dev --name",
-    "db:migrate_all": "prisma migrate dev --skip-generate --skip-seed",
+    "db:migrate_all": "prisma migrate dev --skip-generate",
     "seed:user": "node ./src/seeder/user.js"
+  },
+  "prisma": {
+    "seed": "node ./src/seeder/user.js"
   },
   "keywords": [],
   "author": "",
