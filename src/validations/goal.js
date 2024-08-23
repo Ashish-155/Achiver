@@ -4,6 +4,7 @@ const datePattern = /^\d{2}-\d{2}-\d{4}$/;
 
 const createGoalValidation = {
     payload: Joi.object({
+        name: Joi.string().required().label('name'),
         lead_target: Joi.number().required().label('lead_target'),
         lag_target: Joi.number().required().label('lag_target'),
         // start_date: Joi.string().required().label('start_date'),
@@ -21,6 +22,8 @@ const createGoalValidation = {
 // seperate week goal creation 
 const createSeperateGoalValidation = {
     payload: Joi.object({
+        name: Joi.string().required().label('name'),
+
         description: Joi.string().optional().label('description'),
 
         start_date: Joi.string()
@@ -34,12 +37,12 @@ const createSeperateGoalValidation = {
         // Array of week targets with lead and lag targets for each week
         weeks: Joi.array().items(
             Joi.object({
-                lead_target: Joi.number().required().label('lead_target'),
-                lag_target: Joi.number().required().label('lag_target'),
+                lead_target: Joi.number().optional().label('lead_target'),
+                lag_target: Joi.number().optional().label('lag_target'),
             })
         )
             .length(12) // Ensure exactly 12 weeks are provided
-            .required()
+            .optional()
             .label('weeks')
             .messages({
                 'array.length': 'You must provide exactly 12 weeks of targets',

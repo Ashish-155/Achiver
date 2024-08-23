@@ -33,15 +33,16 @@ model User {
 
 model Goal {
   id                      Int     @id @default(autoincrement())
+  name                    String
   description             String?
-  lead_target             Int
+  lead_target             Int?
   lead_actual             Int?
   lag_target              Int?
   lag_actual              Int?
-  duration                String
+  duration                String?
   duration_weeks          Int?
-  start_date              String?
-  end_date                String?
+  start_date              String
+  end_date                String
   lead_execution_score    String?
   lag_execution_score     String?
   overall_execution_score String?

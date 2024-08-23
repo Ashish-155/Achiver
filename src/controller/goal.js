@@ -159,17 +159,85 @@ const creatGoal = async (req, h) => {
 };
 
 // Create goal with separate distribution based on 12-week input
+// const createGoalWithSeperateDistribution = async (req, h) => {
+//     try {
+//         const user = req.rootUser;
+//         const { name, weeks, description, start_date } = req.payload;
+
+//         // Sum up the lead and lag targets from all 12 weeks
+//         const totalLeadTarget = weeks.reduce((sum, week) => sum + parseFloat(week.lead_target), 0);
+//         const totalLagTarget = weeks.reduce((sum, week) => sum + parseFloat(week.lag_target), 0);
+
+//         // Calculate the end date as 12 weeks from the start date
+//         const startDate = new Date(start_date);
+//         const endDate = new Date(startDate);
+//         endDate.setDate(startDate.getDate() + 84); // 84 days = 12 weeks
+
+//         // Start the transaction
+//         const result = await prisma.$transaction(async (tx) => {
+//             // Create the main goal with the summed lead and lag targets
+//             const newGoal = await tx.goal.create({
+//                 data: {
+//                     user_id: user.id,
+//                     name,
+//                     lead_target: totalLeadTarget,
+//                     lag_target: totalLagTarget,
+//                     start_date: startDate.toISOString(),
+//                     description,
+//                     duration: "12 weeks",
+//                     end_date: endDate.toISOString(),
+//                 },
+//             });
+
+//             // Create the week goals from the provided data
+//             const weekGoals = weeks.map((week, index) => {
+//                 const weekStartDate = new Date(startDate);
+//                 weekStartDate.setDate(startDate.getDate() + (index * 7));
+//                 const weekEndDate = new Date(weekStartDate);
+//                 weekEndDate.setDate(weekEndDate.getDate() + 6);
+
+//                 return {
+//                     week_for: index + 1,
+//                     goal_id: newGoal.id,
+//                     lead_target: parseFloat(week.lead_target),
+//                     lag_target: parseFloat(week.lag_target),
+//                     start_date: weekStartDate.toISOString(),
+//                     end_date: weekEndDate.toISOString(),
+//                 };
+//             });
+
+//             await tx.week_Goal.createMany({
+//                 data: weekGoals,
+//             });
+
+//             return newGoal;
+//         });
+
+//         return h.response({
+//             message: "Goal and week goals created successfully.",
+//             data: result,
+//         }).code(201);
+
+//     } catch (error) {
+//         console.log(error);
+//         return h.response({ message: "Error while creating goal", error }).code(500);
+//     }
+// };
+
 const createGoalWithSeperateDistribution = async (req, h) => {
     try {
         const user = req.rootUser;
-        const { weeks, description, start_date } = req.payload;
+        const { name, weeks, description, start_date } = req.payload;
+
+        // Parse the date from the provided format (DD-MM-YYYY)
+        const [day, month, year] = start_date.split('-');
+        const startDate = new Date(`${year}-${month}-${day}`);
 
         // Sum up the lead and lag targets from all 12 weeks
         const totalLeadTarget = weeks.reduce((sum, week) => sum + parseFloat(week.lead_target), 0);
         const totalLagTarget = weeks.reduce((sum, week) => sum + parseFloat(week.lag_target), 0);
 
         // Calculate the end date as 12 weeks from the start date
-        const startDate = new Date(start_date);
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 84); // 84 days = 12 weeks
 
@@ -179,6 +247,7 @@ const createGoalWithSeperateDistribution = async (req, h) => {
             const newGoal = await tx.goal.create({
                 data: {
                     user_id: user.id,
+                    name,
                     lead_target: totalLeadTarget,
                     lag_target: totalLagTarget,
                     start_date: startDate.toISOString(),
@@ -222,6 +291,7 @@ const createGoalWithSeperateDistribution = async (req, h) => {
         return h.response({ message: "Error while creating goal", error }).code(500);
     }
 };
+
 
 // get users all goal
 const getAllMyGoals = async (req, h) => {
@@ -651,4 +721,5 @@ module.exports = {
 
     insertActualGoalData,
     insertActualWeekGoalData,
+
 };
