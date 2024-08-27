@@ -106,8 +106,8 @@ const updateWeekGoalActionValidation = {
 const insertActualGoalDataValidation = {
     payload: Joi.object({
         goal_id: Joi.number().integer().positive().required().label('goal_id'),
-        lead_actual: Joi.number().required().label('lead_actual'),
-        lag_actual: Joi.number().required().label('lag_actual'),
+        lead_actual: Joi.number().optional().label('lead_actual'),
+        lag_actual: Joi.number().optional().label('lag_actual'),
         description: Joi.string().optional().label('description'),
     }),
 }
@@ -116,9 +116,15 @@ const insertActualGoalDataValidation = {
 const insertActualWeekGoalDataValidation = {
     payload: Joi.object({
         week_goal_id: Joi.number().integer().positive().required().label('week_goal_id'),
-        lead_actual: Joi.number().required().label('lead_actual'),
-        lag_actual: Joi.number().required().label('lag_actual'),
-        description: Joi.string().optional().label('description'),
+        lead_actual: Joi.number().optional().label('lead_actual'),
+        lag_actual: Joi.number().optional().label('lag_actual'),
+        description: Joi.string().optional().allow('').label('description'),
+    }),
+}
+
+const fetchSingleWeekGoalByIdValidation = {
+    query: Joi.object({
+        id: Joi.number().integer().positive().required().label('id'),
     }),
 }
 
@@ -133,5 +139,6 @@ module.exports = {
     deleteGoalValidation,
     insertActualGoalDataValidation,
     insertActualWeekGoalDataValidation,
+    fetchSingleWeekGoalByIdValidation,
 
 }

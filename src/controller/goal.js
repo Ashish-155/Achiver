@@ -542,6 +542,30 @@ const updateWeekGoalAction = async (req, h) => {
     }
 }
 
+// fetch single week by Id 
+const getSingleWeekById = async (req, h) => {
+    try {
+        // const user = req.rootUser;
+        const { id } = req.query;
+
+        const weekGoal = await prisma.week_Goal.findFirst({
+            where: {
+                id: id,
+                deleted_at: null,
+            }
+        })
+        return h.response({
+            success: true,
+            message: "Single week goal fetched successfully",
+            data: weekGoal
+        }).code(200);
+
+    } catch (error) {
+        console.log(error);
+        return h.response({ message: "Error fetching single week", error }).code(500);
+    }
+}
+
 // =================================================================>
 // --------------- (Actual goal data handle here) -------------------
 // =================================================================>
@@ -721,5 +745,6 @@ module.exports = {
 
     insertActualGoalData,
     insertActualWeekGoalData,
+    getSingleWeekById,
 
 };

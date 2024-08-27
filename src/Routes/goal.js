@@ -1,7 +1,7 @@
 const { Authentication } = require("../config/auth");
 const controller = require("../controller/goal");
 const Joi = require('joi');
-const { createGoalValidation, updateGoalValidation, deleteGoalValidation, insertActualGoalDataValidation, insertActualWeekGoalDataValidation, createSeperateGoalValidation, setWeekGoalActionValidation, updateWeekGoalActionValidation } = require("../validations/goal");
+const { createGoalValidation, updateGoalValidation, deleteGoalValidation, insertActualGoalDataValidation, insertActualWeekGoalDataValidation, createSeperateGoalValidation, setWeekGoalActionValidation, updateWeekGoalActionValidation, fetchSingleWeekGoalByIdValidation } = require("../validations/goal");
 
 module.exports = [
     // create goal
@@ -253,6 +253,30 @@ module.exports = [
 
     },
 
+    // fetch single week goal by Id 
+
+    {
+        method: 'GET',
+        path: '/goal/week-goal-for',
+        options: {
+            tags: ['api', 'Goal'],
+            handler: controller.getSingleWeekById,
+            pre: [Authentication],
+            description: "Get Single Week Goal By Id",
+            validate: {
+                ...fetchSingleWeekGoalByIdValidation,
+                failAction: (request, h, err) => {
+                    const customErrorMessages = err.details.map(detail => detail.message);
+                    return h.response({
+                        statusCode: 400,
+                        error: 'Bad Request',
+                        message: customErrorMessages
+                    }).code(400).takeover();
+                }
+            },
+        }
+
+    },
 
 
 ]
