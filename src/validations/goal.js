@@ -98,6 +98,14 @@ const updateWeekGoalActionValidation = {
     }),
 }
 
+// week_goal action (Delete)
+
+const deleteWeekGoalActionValidation = {
+    payload: Joi.object({
+        week_goal_action_id: Joi.number().integer().positive().required().label('week_goal_action_id'),
+    }),
+}
+
 // =================================================================>
 // --------------- (Actual goal data handle here) --------------------
 // =================================================================>
@@ -140,5 +148,6 @@ module.exports = {
     insertActualGoalDataValidation,
     insertActualWeekGoalDataValidation,
     fetchSingleWeekGoalByIdValidation,
+    deleteWeekGoalActionValidation,
 
 }

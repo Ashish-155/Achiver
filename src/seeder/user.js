@@ -4,7 +4,7 @@ require('dotenv').config();
 const prisma = new PrismaClient();
 
 const userSeed = async () => {
-    const email = 'test@123.com';
+    const email = 'ashish@123.com';
     const password = 'password';
     const mobile = '7003957953';
     const isdCode = "+91";
@@ -24,7 +24,7 @@ const userSeed = async () => {
 
         const userData = await prisma.user.create({
             data: {
-                name: 'Test_User',
+                name: 'Ashish Shaw',
                 email: email,
                 contact_no: mobile,
                 isd_code: isdCode,

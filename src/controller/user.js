@@ -14,7 +14,10 @@ const userLogin = async (req, h) => {
             where: {
                 email: email,
                 deleted_at: null,
-            }
+            },
+            include: {
+                Goal: true,
+            },
         });
         if (!user) {
             return h.response({ message: "User not found" }).code(404);
@@ -27,8 +30,14 @@ const userLogin = async (req, h) => {
         const token = jwt.sign({ email: user.email }, SECRET, {
             expiresIn: "1d"
         });
+        const hasGoals = user.Goal.length > 0;
 
-        return h.response({ success: true, message: "Login sucessfully", token: token, data: user }).code(200);
+        return h.response({
+            success: true, message: "Login sucessfully",
+            token: token,
+            hasGoals: hasGoals,
+            data: user,
+        }).code(200);
 
     } catch (error) {
         console.log(error);

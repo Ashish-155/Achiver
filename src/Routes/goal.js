@@ -1,7 +1,7 @@
 const { Authentication } = require("../config/auth");
 const controller = require("../controller/goal");
 const Joi = require('joi');
-const { createGoalValidation, updateGoalValidation, deleteGoalValidation, insertActualGoalDataValidation, insertActualWeekGoalDataValidation, createSeperateGoalValidation, setWeekGoalActionValidation, updateWeekGoalActionValidation, fetchSingleWeekGoalByIdValidation } = require("../validations/goal");
+const { createGoalValidation, updateGoalValidation, deleteGoalValidation, insertActualGoalDataValidation, insertActualWeekGoalDataValidation, createSeperateGoalValidation, setWeekGoalActionValidation, updateWeekGoalActionValidation, fetchSingleWeekGoalByIdValidation, deleteWeekGoalActionValidation } = require("../validations/goal");
 
 module.exports = [
     // create goal
@@ -177,6 +177,30 @@ module.exports = [
             description: "Update Week_Goal Action",
             validate: {
                 ...updateWeekGoalActionValidation,
+                failAction: (request, h, err) => {
+                    const customErrorMessages = err.details.map(detail => detail.message);
+                    return h.response({
+                        statusCode: 400,
+                        error: 'Bad Request',
+                        message: customErrorMessages
+                    }).code(400).takeover();
+                }
+            },
+        }
+
+    },
+
+    // week_goal action (delete)
+    {
+        method: 'DELETE',
+        path: '/goal/delete-week_goal-action',
+        options: {
+            tags: ['api', 'Goal'],
+            handler: controller.removeWeekGoalAction,
+            pre: [Authentication],
+            description: "Delete Week_Goal Action By Id",
+            validate: {
+                ...deleteWeekGoalActionValidation,
                 failAction: (request, h, err) => {
                     const customErrorMessages = err.details.map(detail => detail.message);
                     return h.response({
