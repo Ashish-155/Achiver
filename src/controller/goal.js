@@ -1,36 +1,6 @@
 const prisma = require("../config/DbConfig");
 const moment = require('moment');
 
-// const creatGoal = async (req, h) => {
-//     try {
-//         const user = req.rootUser;
-//         const { lead_target, lag_target, start_date, description, } = req.payload;
-
-//         const today = new Date();
-//         const endDate = new Date(today);
-//         endDate.setDate(today.getDate() + 84);
-
-//         const newGoal = await prisma.goal.create({
-//             data: {
-//                 user_id: user.id,
-//                 lead_target,
-//                 lag_target,
-//                 start_date,
-//                 description,
-//                 duration: "12 weeks",
-//                 end_date: endDate.toISOString(),
-//             },
-//         });
-//         return h.response({
-//             message: "Goal created successfully.",
-//             data: newGoal
-//         }).code(201);
-
-//     } catch (error) {
-//         console.log(error);
-//         return h.response({ message: "Error creating goal", error }).code(500);
-//     }
-// }
 
 // const creatGoal = async (req, h) => {
 //     try {
@@ -347,6 +317,7 @@ const getAllMyGoals = async (req, h) => {
 };
 
 // single goal by Id
+
 // const fetchSingleGoalById = async (req, h) => {
 //     try {
 //         const user = req.rootUser;
@@ -356,21 +327,63 @@ const getAllMyGoals = async (req, h) => {
 //             where: {
 //                 id: id,
 //                 user_id: user.id,
-//                 deleted_at: null,
+//                 deleted_at: null
 //             },
 //             include: {
-//                 Week_Goal: true,
-//             },
+//                 Week_Goal: true
+//             }
 //         });
+
 //         if (!goal) {
 //             return h.response({ message: "Goal not found." }).code(404);
 //         }
-//         return h.response({ sucess: true, message: "Goal fetched successfully.", data: goal }).code(200);
+
+//         // Get the current date
+//         const currentDate = new Date();
+//         let upcomingSet = false;
+
+//         // Add 'running' and 'upcoming' keys to each week goal
+//         const updatedWeekGoals = goal.Week_Goal.map(weekGoal => {
+//             const startDate = new Date(weekGoal.start_date);
+//             const endDate = new Date(weekGoal.end_date);
+
+//             // Check if the current date is within the start and end date of the week goal
+//             const isRunning = currentDate >= startDate && currentDate <= endDate;
+
+//             // Check if this is the next upcoming week goal
+//             let isUpcoming = false;
+//             if (!upcomingSet && startDate > currentDate) {
+//                 isUpcoming = true;
+//                 upcomingSet = true; // Ensure only the first future week is marked as upcoming
+//             }
+
+//             return {
+//                 ...weekGoal,
+//                 running: isRunning,
+//                 upcoming: isUpcoming
+//             };
+//         });
+
+//         // Update the goal object with the modified Week_Goal array
+//         goal.Week_Goal = updatedWeekGoals;
+
+//         return h
+//             .response({
+//                 success: true,
+//                 message: "Goal fetched successfully.",
+//                 data: goal
+//             })
+//             .code(200);
 //     } catch (error) {
 //         console.log(error);
-//         return h.response({ message: "Error while fetching goal", error }).code(500);
+//         return h
+//             .response({
+//                 message: "Error while fetching goal",
+//                 error
+//             })
+//             .code(500);
 //     }
-// }
+// };
 
 const fetchSingleGoalById = async (req, h) => {
     try {
@@ -392,21 +405,27 @@ const fetchSingleGoalById = async (req, h) => {
             return h.response({ message: "Goal not found." }).code(404);
         }
 
-        // Get the current date
+        // Get the current date without the time part
         const currentDate = new Date();
+        const currentDateWithoutTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
         let upcomingSet = false;
 
         // Add 'running' and 'upcoming' keys to each week goal
         const updatedWeekGoals = goal.Week_Goal.map(weekGoal => {
+            // Convert start_date and end_date to Date objects
             const startDate = new Date(weekGoal.start_date);
             const endDate = new Date(weekGoal.end_date);
 
+            const startDateWithoutTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            const endDateWithoutTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
             // Check if the current date is within the start and end date of the week goal
-            const isRunning = currentDate >= startDate && currentDate <= endDate;
+            const isRunning = currentDateWithoutTime >= startDateWithoutTime && currentDateWithoutTime <= endDateWithoutTime;
 
             // Check if this is the next upcoming week goal
             let isUpcoming = false;
-            if (!upcomingSet && startDate > currentDate) {
+            if (!upcomingSet && startDateWithoutTime > currentDateWithoutTime) {
                 isUpcoming = true;
                 upcomingSet = true; // Ensure only the first future week is marked as upcoming
             }
@@ -999,6 +1018,64 @@ const insertActualWeekGoalData = async (req, h) => {
     }
 };
 
+// counter api 
+const counterApi = async (req, h) => {
+    try {
+        const user = req.rootUser;
+        const currentDate = moment().format('YYYY-MM-DD');
+
+        const [completed, upcoming, running] = await Promise.all([
+            // Completed goals (where end date has passed)
+            prisma.goal.count({
+                where: {
+                    user_id: user.id,
+                    end_date: {
+                        lt: currentDate
+                    },
+                    deleted_at: null
+                }
+            }),
+            // Upcoming goals (where start date is in the future)
+            prisma.goal.count({
+                where: {
+                    user_id: user.id,
+                    start_date: {
+                        gt: currentDate
+                    },
+                    deleted_at: null
+                }
+            }),
+            // Running goals (where current date falls between start and end dates)
+            prisma.goal.count({
+                where: {
+                    user_id: user.id,
+                    start_date: {
+                        lte: currentDate
+                    },
+                    end_date: {
+                        gte: currentDate
+                    },
+                    deleted_at: null
+                }
+            })
+        ]);
+
+        return h.response({
+            message: "All counted data fetched successfully",
+            meta: {
+                completed_goals: completed,
+                upcoming_goals: upcoming,
+                running_goals: running
+            }
+        }).code(200);
+
+    } catch (error) {
+        console.log(error);
+        return h.response({ message: "Error while counting goals", error }).code(500);
+    }
+};
+
+
 module.exports = {
     creatGoal,
     createGoalWithSeperateDistribution,
@@ -1013,4 +1090,5 @@ module.exports = {
     insertActualWeekGoalData,
     getSingleWeekById,
     removeWeekGoalAction,
+    counterApi,
 };

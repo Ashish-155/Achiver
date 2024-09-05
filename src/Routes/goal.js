@@ -214,6 +214,19 @@ module.exports = [
 
     },
 
+    // counter api 
+    {
+        method: 'GET',
+        path: '/goal/count-goal-data',
+        options: {
+            tags: ['api', 'Goal'],
+            handler: controller.counterApi,
+            pre: [Authentication],
+            description: "Count My All Goals",
+        }
+
+    },
+
 
     // =================================================================>
     // --------------- (Actual goal data handle here) --------------------
