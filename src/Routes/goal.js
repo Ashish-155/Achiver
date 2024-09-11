@@ -1,7 +1,7 @@
 const { Authentication } = require("../config/auth");
 const controller = require("../controller/goal");
 const Joi = require('joi');
-const { createGoalValidation, updateGoalValidation, deleteGoalValidation, insertActualGoalDataValidation, insertActualWeekGoalDataValidation, createSeperateGoalValidation, setWeekGoalActionValidation, updateWeekGoalActionValidation, fetchSingleWeekGoalByIdValidation, deleteWeekGoalActionValidation } = require("../validations/goal");
+const { createGoalValidation, updateGoalValidation, deleteGoalValidation, insertActualGoalDataValidation, insertActualWeekGoalDataValidation, createSeperateGoalValidation, setWeekGoalActionValidation, updateWeekGoalActionValidation, fetchSingleWeekGoalByIdValidation, deleteWeekGoalActionValidation, calculateCumulativeCalculationValidation } = require("../validations/goal");
 
 module.exports = [
     // create goal
@@ -315,5 +315,28 @@ module.exports = [
 
     },
 
+    // cummulative data
+    {
+        method: 'GET',
+        path: '/goal/cumulative-calculation',
+        options: {
+            tags: ['api', 'Goal'],
+            handler: controller.cummulativeCalculationApi,
+            pre: [Authentication],
+            description: "Get Cummulative Calculation",
+            validate: {
+                ...calculateCumulativeCalculationValidation,
+                failAction: (request, h, err) => {
+                    const customErrorMessages = err.details.map(detail => detail.message);
+                    return h.response({
+                        statusCode: 400,
+                        error: 'Bad Request',
+                        message: customErrorMessages
+                    }).code(400).takeover();
+                }
+            },
+        }
+
+    },
 
 ]

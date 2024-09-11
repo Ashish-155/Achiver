@@ -66,16 +66,18 @@ model Week_Goal {
   goal_id Int
   goal    Goal @relation(fields: [goal_id], references: [id])
 
-  description             String?
-  lead_target             Int
-  lead_actual             Int?
-  lag_target              Int?
-  lag_actual              Int?
-  start_date              String?
-  end_date                String?
-  lead_execution_score    String?
-  lag_execution_score     String?
-  overall_execution_score String?
+  description                     String?
+  lead_target                     Int
+  lead_actual                     Int?
+  lag_target                      Int?
+  lag_actual                      Int?
+  start_date                      String?
+  end_date                        String?
+  lead_execution_score            String?
+  lag_execution_score             String?
+  // overall_execution_score         String?
+  lead_cumulative_execution_score String?
+  lag_cumulative_execution_score  String?
 
   created_at        DateTime            @default(now())
   updated_at        DateTime?           @updatedAt

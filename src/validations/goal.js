@@ -136,6 +136,15 @@ const fetchSingleWeekGoalByIdValidation = {
     }),
 }
 
+// cumulative calculation
+
+const calculateCumulativeCalculationValidation = {
+    query: Joi.object({
+        goal_id: Joi.number().integer().positive().required().label('id'),
+        week_goal_id: Joi.number().positive().required().label('week_goal_id'),
+    }),
+}
+
 module.exports = {
     createGoalValidation,
 
@@ -149,5 +158,6 @@ module.exports = {
     insertActualWeekGoalDataValidation,
     fetchSingleWeekGoalByIdValidation,
     deleteWeekGoalActionValidation,
+    calculateCumulativeCalculationValidation,
 
 }

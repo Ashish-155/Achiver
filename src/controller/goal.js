@@ -751,6 +751,63 @@ const getSingleWeekById = async (req, h) => {
     }
 };
 
+// cummulative calculation api 
+const cummulativeCalculationApi = async (req, h) => {
+    try {
+        const user = req.rootUser;
+        const { goal_id, week_goal_id } = req.query;
+
+        const weekGoal = await prisma.week_Goal.findFirst({
+            where: {
+                id: week_goal_id,
+                goal_id: goal_id,
+                deleted_at: null
+            }
+        });
+        // console.log("weekGoal : ", weekGoal);
+        if (!weekGoal) {
+            return h.response({ success: false, message: "Week goal not found" }).code(404);
+        }
+
+        const weekGoals = await prisma.week_Goal.findMany({
+            where: {
+                goal_id: goal_id,
+                week_for: {
+                    lte: weekGoal.week_for
+                },
+                deleted_at: null
+            }
+        });
+
+        // console.log("AllWeekGoals : ", weekGoals.map((val) => {
+        //     return {
+        //         id: val.id,
+        //         week_for: val.week_for,
+        //         lead_target: val.lead_target,
+        //         lag_actual: val.lag_actual
+        //     }
+        // }));
+
+        // Calculate the cumulative sum of lead_target and lag_actual
+        const cumulativeLeadTarget = weekGoals.reduce((sum, wg) => sum + (wg.lead_target || 0), 0);
+        const cumulativeLagActual = weekGoals.reduce((sum, wg) => sum + (wg.lead_actual || 0), 0);
+
+        // console.log("Lead : ", cumulativeLeadTarget)
+        // console.log("Actual : ", cumulativeLagActual)
+
+        return h.response({
+            success: true,
+            message: "Cumulative calculation fetched successfully.",
+            data: {
+                cumulativeLeadTarget,
+                cumulativeLagActual
+            }
+        }).code(200);
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 // =================================================================>
 // --------------- (Actual goal data handle here) -------------------
 // =================================================================>
@@ -937,6 +994,7 @@ const insertActualWeekGoalData = async (req, h) => {
                 lag_execution_score: lagExecutionScore
             }
         });
+
         /////////////////////////////////////////////////////////////////
         // Main goal calculation
         const existingGoal = await prisma.goal.findUnique({
@@ -1018,6 +1076,113 @@ const insertActualWeekGoalData = async (req, h) => {
     }
 };
 
+// const insertActualWeekGoalData = async (req, h) => {
+//     try {
+//         const user = req.rootUser;
+//         const { week_goal_id, lead_actual, lag_actual, description } = req.payload;
+
+//         const existingWeekGoal = await prisma.week_Goal.findUnique({
+//             where: {
+//                 id: week_goal_id,
+//                 goal: {
+//                     user_id: user.id,
+//                     deleted_at: null
+//                 },
+//                 deleted_at: null
+//             },
+//             include: {
+//                 goal: true
+//             }
+//         });
+
+//         if (!existingWeekGoal) {
+//             return h.response({ message: "Week goal not found" }).code(404);
+//         }
+
+//         // Calculate lead and lag execution scores for the current week
+//         let leadExecutionScore = null;
+//         if (lead_actual !== undefined && existingWeekGoal.lead_target) {
+//             const leadChange =
+//                 (lead_actual - existingWeekGoal.lead_target) /
+//                 existingWeekGoal.lead_target *
+//                 100;
+//             leadExecutionScore =
+//                 (leadChange >= 0 ? "+" : "") + leadChange.toFixed(2) + "%";
+//         }
+
+//         let lagExecutionScore = null;
+//         if (lag_actual !== undefined && existingWeekGoal.lag_target) {
+//             const lagChange =
+//                 (lag_actual - existingWeekGoal.lag_target) /
+//                 existingWeekGoal.lag_target *
+//                 100;
+//             lagExecutionScore =
+//                 (lagChange >= 0 ? "+" : "") + lagChange.toFixed(2) + "%";
+//         }
+
+//         // Update the current week goal with actual data and calculated scores
+//         const insertedActualWeekGoalData = await prisma.week_Goal.update({
+//             where: {
+//                 id: existingWeekGoal.id,
+//                 deleted_at: null
+//             },
+//             data: {
+//                 lead_actual,
+//                 lag_actual,
+//                 description,
+//                 lead_execution_score: leadExecutionScore,
+//                 lag_execution_score: lagExecutionScore
+//             }
+//         });
+
+//         // Fetch all week goals up to the current week to calculate cumulative sums
+//         const allWeekGoals = await prisma.week_Goal.findMany({
+//             where: {
+//                 goal_id: existingWeekGoal.goal_id,
+//                 deleted_at: null,
+//                 start_date: {
+//                     lte: existingWeekGoal.start_date // Ensure we fetch up to the current week
+//                 }
+//             }
+//         });
+
+//         // Calculate cumulative sums for lead and lag actuals
+//         const leadCumulativeSum = allWeekGoals.reduce((sum, weekGoal) => {
+//             return sum + (weekGoal.lead_actual || 0); // Treat null as 0
+//         }, 0);
+
+//         const lagCumulativeSum = allWeekGoals.reduce((sum, weekGoal) => {
+//             return sum + (weekGoal.lag_actual || 0); // Treat null as 0
+//         }, 0);
+
+//         // Update the current week goal with the cumulative sums
+//         await prisma.week_Goal.update({
+//             where: {
+//                 id: existingWeekGoal.id,
+//                 deleted_at: null
+//             },
+//             data: {
+//                 lead_cumulative_execution_score: leadCumulativeSum.toString(),
+//                 lag_cumulative_execution_score: lagCumulativeSum.toString()
+//             }
+//         });
+
+//         return h
+//             .response({
+//                 message: "Actual week goal data inserted successfully.",
+//                 data: insertedActualWeekGoalData
+//             })
+//             .code(200);
+//     } catch (error) {
+//         console.log(error);
+//         return h
+//             .response({ message: "Error inserting actual week goal data", error })
+//             .code(500);
+//     }
+// };
+
+
+
 // counter api 
 const counterApi = async (req, h) => {
     try {
@@ -1091,4 +1256,5 @@ module.exports = {
     getSingleWeekById,
     removeWeekGoalAction,
     counterApi,
+    cummulativeCalculationApi,
 };
